@@ -1,0 +1,21 @@
+MODEL:
+  VISUAL:
+    NAME: "ViT-B/32"
+  LANG:
+    NAME: "clip"
+
+INPUT:
+  SIZE: (224, 224)
+  INTERPOLATION: "bicubic"
+
+DATALOADER:
+  TRAIN:
+    BATCH_SIZE: 8
+    SHUFFLE: True
+  TEST:
+    BATCH_SIZE: 100
+    SHUFFLE: False
+  VAL:
+    BATCH_SIZE: 100
+    SHUFFLE: False
+  NUM_WORKERS: 4

@@ -1,0 +1,23 @@
+# white list mode
+*
+*.*
+
+# wildcards
+!*.py
+
+# files
+!.gitignore
+!environment.yaml
+!README.md
+!Makefile
+
+# folders
+!utils
+!weights
+!model
+!dataloader
+!dataset
+!datasets
+!configs
+!clip
+
