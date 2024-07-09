@@ -19,6 +19,10 @@ class CLIPLoss(nn.Module):
 
 
 class AsymmetricLoss(nn.Module):
+    """
+    modified from Asymmetric Loss For Multi-Label Classification https://github.com/Alibaba-MIIL/ASL
+    """
+
     def __init__(
         self,
         gamma_neg=4,
@@ -87,28 +91,6 @@ class AsymmetricLoss(nn.Module):
         return -loss.sum()
 
 
-class ClassSimLoss(nn.Module):
-
-    def __init__(self):
-        super().__init__()
-
-    def forward(self, m, l):
-        m = m.view(-1, 2 * m.shape[-1])
-        m = m / m.norm(dim=1, keepdim=True)
-        m = m @ m.t()  # bs,bs
-        r = torch.nonzero(l == 1, as_tuple=True)[0]
-        k = torch.zeros(l.shape[1]).to(m.device)
-        count = torch.zeros(l.shape[1]).long().to(m.device)
-        for i, j in zip(r, r[1:]):
-            for c in range(l.shape[1]):
-                if l[i, c] == 1 and l[j, c] == 1:
-                    k[c] += m[i, j]
-                    count[c] += 1
-        avg_s = k[count > 0] / count[count > 0]
-        loss3 = -torch.sum(avg_s) / k.sum()
-        return loss3
-
-
 class MultilabelPairLoss(nn.Module):
 
     def __init__(self, enable_maxpool=True):
@@ -135,6 +117,7 @@ class MultilabelPairLoss(nn.Module):
         return loss
 
 
+# ranking loss
 class LossRanking(nn.Module):
     def __init__(self, gamma_neg=4, gamma_pos=1, weight_a=0.1, weight_b=0.07):
         super().__init__()
@@ -158,9 +141,6 @@ class LossRanking(nn.Module):
 
         loss = loss1 + loss2
         return loss
-
-
-# ranking loss
 
 
 class LossMixture(nn.Module):

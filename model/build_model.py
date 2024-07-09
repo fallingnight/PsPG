@@ -113,13 +113,6 @@ def build_pspg(cfg, classnames):
     prompt_learner_params = sum(p.numel() for p in prompt_learner.parameters())
     print(f"Prompt Learner parameters: {prompt_learner_params/(1e6):.2f}M")
 
-    """
-    if not cfg.TRAINER.FINETUNE_CLIP:
-        print("Freeze the backbone weights")
-        backbone_params = model.backbone_params()
-        for param in backbone_params:
-            param.requires_grad_(False)
-    """
     if torch.cuda.is_available() and cfg.USE_CUDA:
         device = torch.device("cuda")
     else:

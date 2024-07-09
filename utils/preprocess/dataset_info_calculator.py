@@ -4,6 +4,13 @@ from tqdm import tqdm
 
 
 def calculate_mean_std(data_dir):
+    """
+    this function is used for calc mean and std of our train dataset CheXpert. (for finetune backbone on MIMIC we do it by similar way)
+
+    Args:
+        data_dir: path of your dataset
+
+    """
     if torch.cuda.is_available():
         device = torch.device("cuda")
     else:
@@ -40,14 +47,12 @@ def calculate_mean_std(data_dir):
         var.append(temp_var)
         num_samples += batch_size
         rgb_channels = []
-        # std.append([np.std(all_pixels_R), np.std(all_pixels_G), np.std(all_pixels_B)])
+
     print(num_samples)
     mean = torch.tensor(mean)
     var = torch.tensor(var)
     var_all = var.mean(dim=0)
-    # std=torch.tensor(std)
-    # mean = [m / 255 for m in mean]
-    # std = [s / 255 for s in std]
+
     mean = mean.mean(dim=0)
     std = torch.sqrt(var_all)
 

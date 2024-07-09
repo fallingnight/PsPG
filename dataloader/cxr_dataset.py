@@ -65,7 +65,7 @@ class MultilabelCXR(data.Dataset):
             "Rib Fracture",
             "Pulmonary Arterial and/or Venous Hypertension",
             "Consolidation",
-            "Interstitial lung disease",
+            "Interstitial Lung Disease",
             "Pleural Effusion",
             "Pleural Thickening, Adhesions, Calcification",
             "Scoliosis",

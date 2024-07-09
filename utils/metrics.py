@@ -8,6 +8,9 @@ from sklearn.metrics import (
 
 
 def multilabelConfussionMatrix(y_test, predictions):
+    """
+    Returns the TP, FP, TN, FN
+    """
 
     TP = np.zeros(y_test.shape[1])
     FP = np.zeros(y_test.shape[1])
@@ -39,6 +42,10 @@ def multilabelConfussionMatrix(y_test, predictions):
 
 
 def multilabelMicroConfussionMatrix(TP, FP, TN, FN):
+    """
+    Returns Micro TP, FP, TN, FN
+    """
+
     TPMicro = 0.0
     FPMicro = 0.0
     TNMicro = 0.0
@@ -53,39 +60,47 @@ def multilabelMicroConfussionMatrix(TP, FP, TN, FN):
     return TPMicro, FPMicro, TNMicro, FNMicro
 
 
-def accuracy(y_test, predictions):
+def accuracyMacro(y_test, predictions):
+
     accuracymacro = 0.0
     accurancy_list = []
     TP, FP, TN, FN = multilabelConfussionMatrix(y_test, predictions)
+
     for i in range(len(TP)):
         acc_class = (TP[i] + TN[i]) / (TP[i] + FP[i] + TN[i] + FN[i])
         accuracymacro += acc_class
         accurancy_list.append(acc_class)
 
-    accuracymacro = float(accuracymacro / len(TP))
+    accuracymacro = np.mean(accurancy_list)
 
     return accuracymacro, accurancy_list
 
 
 def precisionMacro(y_test, predictions):
+
     precisionmacro = 0.0
     precision_list = []
     TP, FP, TN, FN = multilabelConfussionMatrix(y_test, predictions)
-    for i in range(len(TP)):
-        pcs_class = 0.0
-        if TP[i] + FP[i] != 0:
-            pcs_class = TP[i] / (TP[i] + FP[i])
-            precisionmacro = precisionmacro + pcs_class
-        precision_list.append(pcs_class)
 
-    precisionmacro = float(precisionmacro / len(TP))
+    for i in range(len(TP)):
+        if not np.all(y_test[:, i] == 0):
+            pcs_class = 0.0
+            if TP[i] + FP[i] != 0:
+                pcs_class = TP[i] / (TP[i] + FP[i])
+                precisionmacro = precisionmacro + pcs_class
+            precision_list.append(pcs_class)
+
+    precisionmacro = np.mean(precision_list)
+
     return precisionmacro, precision_list
 
 
 def precisionMicro(y_test, predictions):
+
     precisionmicro = 0.0
     TP, FP, TN, FN = multilabelConfussionMatrix(y_test, predictions)
     TPMicro, FPMicro, TNMicro, FNMicro = multilabelMicroConfussionMatrix(TP, FP, TN, FN)
+
     if (TPMicro + FPMicro) != 0:
         precisionmicro = float(TPMicro / (TPMicro + FPMicro))
 
@@ -93,17 +108,21 @@ def precisionMicro(y_test, predictions):
 
 
 def recallMacro(y_test, predictions):
+
     recallmacro = 0.0
     recall_list = []
     TP, FP, TN, FN = multilabelConfussionMatrix(y_test, predictions)
-    for i in range(len(TP)):
-        rc_class = 0.0
-        if TP[i] + FN[i] != 0:
-            rc_class = TP[i] / (TP[i] + FN[i])
-            recallmacro = recallmacro + rc_class
-        recall_list.append(rc_class)
 
-    recallmacro = float(recallmacro / len(TP))
+    for i in range(len(TP)):
+        if not np.all(y_test[:, i] == 0):
+            rc_class = 0.0
+            if TP[i] + FN[i] != 0:
+                rc_class = TP[i] / (TP[i] + FN[i])
+                recallmacro = recallmacro + rc_class
+            recall_list.append(rc_class)
+
+    recallmacro = np.mean(recall_list)
+
     return recallmacro, recall_list
 
 
@@ -160,73 +179,35 @@ def calc_roc(ground_truth, predictions, class_num):
     # Micro.
     fpr, tpr, _ = roc_curve(ground_truth.ravel(), predictions.ravel())
     micro_roc_auc = auc(fpr, tpr)
-
     # Macro.
     roc_per_class = []
     macro_roc_auc = 0
-    for i in range(class_num):
-        fpr, tpr, _ = roc_curve(ground_truth[:, i], predictions[:, i])
-        new_auc = auc(fpr, tpr)
-        macro_roc_auc += new_auc
-        roc_per_class.append(new_auc)
 
-    macro_roc_auc /= class_num
+    for i in range(class_num):
+        if not np.all(ground_truth[:, i] == 0):
+            fpr, tpr, _ = roc_curve(ground_truth[:, i], predictions[:, i])
+            new_auc = auc(fpr, tpr)
+            roc_per_class.append(new_auc)
+
+    macro_roc_auc = np.mean(roc_per_class)
 
     return macro_roc_auc, micro_roc_auc, roc_per_class
 
 
 def calc_ap(ground_truth, predictions):
-    precision, recall, _ = precision_recall_curve(ground_truth, predictions)
+    precision, recall, thresholds = precision_recall_curve(ground_truth, predictions)
     return auc(recall, precision)
 
 
 def calc_map(ground_truth, predictions, class_num):
     ap_list = []
-
     for i in range(class_num):
         gt_class = ground_truth[:, i]
         pred_class = predictions[:, i]
-        ap = calc_ap(gt_class, pred_class)
-        ap_list.append(ap)
+        if not np.all(gt_class == 0):
+            ap = calc_ap(gt_class, pred_class)
+            ap_list.append(ap)
 
     map_score = np.mean(ap_list)
-    return map_score
 
-
-def average_precision(output, target):
-    epsilon = 1e-8
-
-    # sort examples
-    indices = output.argsort()[::-1]
-    # Computes prec@i
-    total_count_ = np.cumsum(np.ones((len(output), 1)))
-
-    target_ = target[indices]
-    ind = target_ == 1
-    pos_count_ = np.cumsum(ind)
-    total = pos_count_[-1]
-    pos_count_[np.logical_not(ind)] = 0
-    pp = pos_count_ / total_count_
-    precision_at_i_ = np.sum(pp)
-    precision_at_i = precision_at_i_ / (total + epsilon)
-
-    return precision_at_i
-
-
-def mAP(targs, preds):
-    """Returns the model's average precision for each class
-    Return:
-        ap (FloatTensor): 1xK tensor, with avg precision for each class k
-    """
-
-    if np.size(preds) == 0:
-        return 0
-    ap = np.zeros((preds.shape[1]))
-    # compute average precision for each class
-    for k in range(preds.shape[1]):
-        # sort scores
-        scores = preds[:, k]
-        targets = targs[:, k]
-        # compute average precision
-        ap[k] = average_precision(scores, targets)
-    return ap.mean()
+    return map_score, ap_list

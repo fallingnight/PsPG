@@ -54,7 +54,6 @@ class pspg(nn.Module):
             torch.ones([]) * np.log(1 / self.cfg.TEMPERATURE)
         )
         """
-
         if image_encoder_dim is not None:
             self.image_projection_layer = nn.Parameter(
                 torch.empty(image_encoder_dim, self.output_dim)

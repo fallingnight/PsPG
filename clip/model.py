@@ -254,18 +254,17 @@ class AttentionPool_Modified(nn.Module):
         """
         x2 = F.linear(x, self.v_proj.weight, self.v_proj.bias)
         x2 = F.linear(x2, self.c_proj.weight, self.c_proj.bias)
-        # x2 dimension is [50, 64, 1024]
+        # x2 dimension is [50, bs, 1024]
+        
         x2 = x2.permute(1, 2, 0)
+        # x2 dimension is [bs, 1024, 50]
 
         return x1.squeeze(0), x2
 
 
 class ModifiedResNet_woPool(nn.Module):
     """
-    A ResNet class that is similar to torchvision's but contains the following changes:
-    - There are now 3 "stem" convolutions as opposed to 1, with an average pool instead of a max pool.
-    - Performs anti-aliasing strided convolutions, where an avgpool is prepended to convolutions with stride > 1
-    - The final pooling layer is a QKV attention instead of an average pool
+    A ResNet class that is similar to clip's version, but output the intermediate features (local features).
     """
 
     def __init__(

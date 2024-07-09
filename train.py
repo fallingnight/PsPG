@@ -23,18 +23,21 @@ from timm.utils import ModelEmaV2
 from trainer import train_epoch
 from validator import run_val
 
-# TRAIN_FILE_PATH = "train_labels_dataset.jsonl"
-# VAL_FILE_PATH = "test_dataset.jsonl"
-# TEST_FILE_PATH = "test_dataset.jsonl"
-
 
 def build_dataloaders(cfg):
+
     train_split = cfg.DATASET.TRAIN_SPLIT
     val_split = cfg.DATASET.VAL_SPLIT
     test_split = cfg.DATASET.TEST_SPLIT
-    train_dataset = build_dataset(cfg, cfg.DATASET.NAME, train_split, cfg.DATASET.TRAIN_FILE_PATH)
-    val_dataset = build_dataset(cfg, cfg.DATASET.NAME, val_split, cfg.DATASET.VAL_FILE_PATH)
-    test_dataset = build_dataset(cfg, cfg.DATASET.NAME, test_split, cfg.DATASET.TEST_FILE_PATH)
+    train_dataset = build_dataset(
+        cfg, cfg.DATASET.NAME, train_split, cfg.DATASET.TRAIN_FILE_PATH
+    )
+    val_dataset = build_dataset(
+        cfg, cfg.DATASET.NAME, val_split, cfg.DATASET.VAL_FILE_PATH
+    )
+    test_dataset = build_dataset(
+        cfg, cfg.DATASET.NAME, test_split, cfg.DATASET.TEST_FILE_PATH
+    )
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
         batch_size=cfg.DATALOADER.TRAIN.BATCH_SIZE,
@@ -61,6 +64,7 @@ def build_dataloaders(cfg):
 
 
 def eval_best(cfg, test_loader, logger, model, model_name):
+
     test_info = f"Evaluating the best model..."
     print(test_info)
     write_logfile(test_info, logger)
@@ -70,6 +74,7 @@ def eval_best(cfg, test_loader, logger, model, model_name):
 
 
 def main():
+    # detailed config comments in cfg_builder.py
     cfg = get_cfg(args)
     seed = cfg.SEED
     if seed > 0:
@@ -78,17 +83,9 @@ def main():
         random.seed(seed)
     train_loader, val_loader, test_loader, classnames = build_dataloaders(cfg)
     model, model_name = build_pspg(cfg, classnames)
-    """
-    model, epoch = load_model_only(cfg.CHECKPOINT, model)
-    save_dict = {
-        "epoch": epoch,
-        "state_dict": model.state_dict(),
-    }
-    print(epoch)
-    save_checkpoint(save_dict, 0, False, cfg.OUTPUT_DIR, model_name)
-    return
-    """
     model_ema = None
+
+    # Note that the released models do not use ema, but we provide ema support
     if cfg.OPTIM.EMA:
         model_ema = ModelEmaV2(
             model,
@@ -112,11 +109,14 @@ def main():
             )
         else:
             model, _ = load_model_only(cfg.CHECKPOINT, model)
+
+    # for we did not have an available server with multiple GPU, the feasibility of parallel training has not been tested
     device_count = torch.cuda.device_count()
     if device_count > 1:
         print(f"Multiple GPUs detected (n_gpus={device_count}), use all of them!")
         device_ids = list(range(device_count))
         model = nn.DataParallel(model, device_ids=device_ids)
+
     best_AUC = run_val(start_epoch, logger, val_loader, model, cfg, model_name)
     save_dict = {
         "epoch": 0,

@@ -11,7 +11,7 @@ from utils.metrics import (
     fbetaMacro,
     fbetaMicro,
     Average_MCC,
-    accuracy,
+    accuracyMacro,
     precisionMacro,
     precisionMicro,
     recallMacro,
@@ -86,9 +86,9 @@ def validate(val_loader, model, cfg, model_name=None):
         macro_auc, micro_auc, aucs = calc_roc(y_true, y_pred, num_classes)
         top_10_auc = sorted(aucs, reverse=True)[:10]
         top_10_mean_auc = sum(top_10_auc) / len(top_10_auc)
-        map_score = calc_map(y_true, y_pred, num_classes)
+        map_score,_ = calc_map(y_true, y_pred, num_classes)
         mcc_score = Average_MCC(y_true, y_label, num_classes)
-        acc_score, _ = accuracy(y_true, y_label)
+        acc_score, _ = accuracyMacro(y_true, y_label)
         macro_pcs, _ = precisionMacro(y_true, y_label)
         micro_pcs = precisionMicro(y_true, y_label)
         macro_rc, _ = recallMacro(y_true, y_label)

@@ -72,7 +72,7 @@ _C.MODEL.VISUAL.NAME = "RN50"
 _C.MODEL.VISUAL.PRETRAINED = None
 
 
-# Swin parameters
+# swin parameters (we do not use them finally)
 _C.MODEL.VISUAL.SWIN = CN()
 _C.MODEL.VISUAL.SWIN.PATCH_SIZE = 4
 _C.MODEL.VISUAL.SWIN.IN_CHANS = 3
@@ -108,7 +108,7 @@ _C.MODEL.PROMPT.DECODER_TYPE = "gru"
 _C.MODEL.PROMPT.DECODER_HIDDEN = 512
 _C.MODEL.PROMPT.DECODER_MAX_LENGTH = 16
 _C.MODEL.PROMPT.DECODER_NUM_HEADS = 8
-_C.MODEL.PROMPT.DECODER_DROP_OUT = 0
+_C.MODEL.PROMPT.DECODER_DROP_OUT = 0.2
 _C.MODEL.PROMPT.DECODER_LAYERS = 2
 _C.MODEL.PROMPT.DECODER_DROP_PATH = 0.1
 _C.MODEL.PROMPT.ENABLE_PAIRLOSS = False
@@ -116,7 +116,7 @@ _C.MODEL.PROMPT.ENABLE_PREFIX = False
 
 _C.MODEL.LOSS = CN()
 _C.MODEL.LOSS.ASL_GAMMA_POS = 1.0
-_C.MODEL.LOSS.ASL_GAMMA_NEG = 4.0
+_C.MODEL.LOSS.ASL_GAMMA_NEG = 2.0
 
 # Optimization
 _C.OPTIM = CN()
@@ -139,7 +139,6 @@ _C.OPTIM.DECAY_RATE = 0.1
 _C.OPTIM.WARMUP_LR = 1e-6
 _C.OPTIM.MIN_LR = 5e-6
 
-_C.OPTIM.CLIP_GRAD = 5.0
 _C.OPTIM.EMA = False
 _C.OPTIM.EMA_DECAY = 0.9998
 
@@ -177,7 +176,8 @@ def parse_cfg(cfg, args):
         cfg.MODEL.PROMPT.DECODER_MAX_LENGTH = args.decoder_max_length
     if args.decoder_dropout:
         cfg.MODEL.PROMPT.DECODER_DROP_OUT = args.decoder_dropout
-
+    if args.decoder_droppath:
+        cfg.MODEL.PROMPT.DECODER_DROP_PATH = args.decoder_droppath
     if args.pretrained_visual:
         cfg.MODEL.VISUAL.PRETRAINED = args.pretrained_visual
     if args.pretrained_lang:
@@ -229,10 +229,8 @@ def parse_cfg(cfg, args):
 
     if args.test_file_path:
         cfg.DATASET.TEST_FILE_PATH = args.test_file_path
-
     if args.train_file_path:
         cfg.DATASET.TRAIN_FILE_PATH = args.train_file_path
-
     if args.val_file_path:
         cfg.DATASET.VAL_FILE_PATH = args.val_file_path
 
@@ -249,10 +247,4 @@ def get_cfg(args):
 
     cfg.freeze()
 
-    return cfg
-
-
-def get_freeze_cfg():
-    cfg = _C
-    cfg.freeze()
     return cfg

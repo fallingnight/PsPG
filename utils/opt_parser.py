@@ -1,5 +1,6 @@
 import argparse
 
+
 def parse_opt():
     parser = argparse.ArgumentParser(
         description="PsPG train and evaluation python script"
@@ -51,18 +52,20 @@ def parse_opt():
     # data related
     parser.add_argument("--dataset_dir", type=str, help="path to dataset root")
 
-    parser.add_argument("--input_size", default=224, type=int, help="input image size")
+    parser.add_argument(
+        "--input_size", default=224, type=int, help="input image size (default: 224)"
+    )
 
     # log and save related
     parser.add_argument(
-        "--output_dir", default="", type=str, help="log file and model save path"
+        "--output_dir", default="", type=str, help="save path of log file and model "
     )
 
     parser.add_argument(
         "--print_freq",
         type=int,
         default=100,
-        help="frequency to print the log during the training",
+        help="frequency to print the log during the training (default: 100 (iter))",
     )
 
     parser.add_argument(
@@ -99,14 +102,14 @@ def parse_opt():
         "--threshold",
         default=0.5,
         type=float,
-        help="the threshold for validating/evaluating",
+        help="the threshold for val",
     )
 
     parser.add_argument(
         "--start_afresh",
         dest="start_afresh",
         action="store_true",
-        help="dont load optim,lr scheduler,etc",
+        help="do not load the training progress (include optim, lr scheduler, etc), start training afresh",
     )
 
     # decoder
@@ -128,23 +131,28 @@ def parse_opt():
         "--decoder_hidden",
         dest="decoder_hidden",
         type=int,
-        default=128,
-        help="decoder hidden size",
+        help="hidden size of prompt decoder",
     )
 
     parser.add_argument(
         "--decoder_max_length",
         dest="decoder_max_length",
         type=int,
-        default=16,
-        help="decoder max seq length",
+        help="max seq length of prompt decoder",
     )
 
     parser.add_argument(
         "--decoder_dropout",
         dest="decoder_dropout",
         type=float,
-        help="decoder final fc dropout rate",
+        help="dropout rate of prompt decoder's final fc",
+    )
+
+    parser.add_argument(
+        "--decoder_droppath",
+        dest="decoder_droppath",
+        type=float,
+        help="droppath rate of prompt decoder",
     )
 
     # asl loss
@@ -153,7 +161,6 @@ def parse_opt():
         "--gamma_neg",
         dest="gamma_neg",
         type=float,
-        default=2.0,
         help="the gamma neg for asymmetric loss",
     )
 
@@ -161,7 +168,6 @@ def parse_opt():
         "--gamma_pos",
         dest="gamma_pos",
         type=float,
-        default=1.0,
         help="the gamma pos for asymmetric loss",
     )
 
@@ -204,19 +210,6 @@ def parse_opt():
     )
 
     parser.add_argument(
-        "--drop",
-        type=float,
-        default=0.0,
-        help="CLIP dropout rate (default: 0.)",
-    )
-    parser.add_argument(
-        "--drop_path",
-        type=float,
-        default=0.1,
-        help="CLIP drop path rate (default: 0.1)",
-    )
-
-    parser.add_argument(
         "--warmup_epochs",
         dest="warmup_epochs",
         type=int,
@@ -247,24 +240,25 @@ def parse_opt():
         "--test_file_path",
         dest="test_file_path",
         type=str,
-        help="path of the map file of test dataset"
+        help="path of the map file of test dataset",
     )
 
     parser.add_argument(
         "--val_file_path",
         dest="val_file_path",
         type=str,
-        help="path of the map file of val dataset"
+        help="path of the map file of val dataset",
     )
-    
+
     parser.add_argument(
         "--train_file_path",
         dest="train_file_path",
         type=str,
-        help="path of the map file of train dataset"
+        help="path of the map file of train dataset",
     )
 
     return parser
+
 
 parser = parse_opt()
 args = parser.parse_args()

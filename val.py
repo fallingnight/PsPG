@@ -13,12 +13,12 @@ from helper import (
 )
 from validator import validate
 
-# cfg.TEST_FILE_PATH = "vindr_test.jsonl"
-
 
 def build_dataloaders(cfg):
     test_split = cfg.DATASET.TEST_SPLIT
-    test_dataset = build_dataset(cfg, cfg.DATASET.NAME, test_split, cfg.DATASET.TEST_FILE_PATH)
+    test_dataset = build_dataset(
+        cfg, cfg.DATASET.NAME, test_split, cfg.DATASET.TEST_FILE_PATH
+    )
     test_loader = torch.utils.data.DataLoader(
         test_dataset,
         batch_size=cfg.DATALOADER.TEST.BATCH_SIZE,

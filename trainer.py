@@ -7,10 +7,21 @@ from validator import validate
 from utils.losses import CLIPLoss, AsymmetricLoss, LossMixture, LossRanking
 from model.text_encoder import preprocess_text
 from helper import AverageMeter
-from utils.metrics import mAP
+from utils.metrics import calc_map
 
 
 def train_clip(model, images, tokenized_texts):
+    """
+    this function calc the loss of clip, only used when finetuning clip.
+
+    we perform the contrastive learning described in https://arxiv.org/abs/2103.00020
+
+    Args:
+        ..., tokenized_texts : tokenized(preprocessed) report texts
+    Returns:
+        loss
+    """
+
     criterion = CLIPLoss()
     with autocast():
         image_logits, _, _ = model(images, tokenized_texts)
@@ -20,6 +31,20 @@ def train_clip(model, images, tokenized_texts):
 
 
 def train_coop(model, cfg, images, target):
+    """
+    this function calc the loss of CoOp.
+
+    used when learning prompts in DualCoOp's way, for reproducing DualCoOp in medical task
+
+    Args:
+        model (_type_): _description_
+        cfg (_type_): _description_
+        images (_type_): _description_
+        target (_type_): _description_
+
+    Returns:
+
+    """
     criterion = AsymmetricLoss(
         gamma_neg=cfg.LOSS.ASL_GAMMA_NEG, gamma_pos=cfg.LOSS.ASL_GAMMA_POS
     )
@@ -47,6 +72,9 @@ def train_pspg(model, cfg, images, target):
 
 
 def set_model_train(model, cfg):
+    """
+    refer to cfg, select a part of the model that not involved in training
+    """
     if not isinstance(model, nn.DataParallel):
         if not cfg.TRAIN.FINETUNE_CLIP:
             model.image_encoder.eval()
@@ -109,7 +137,10 @@ def train_epoch(
                 pred = Softmax(output.detach())[:, 0]
             else:
                 pred = sigmoid(output.detach())
-            mAP_value = mAP(target.cpu().numpy(), pred.cpu().numpy())
+            num_classes = target.shape[1]
+            mAP_value, _ = calc_map(
+                target.cpu().numpy(), pred.cpu().numpy(), num_classes
+            )
             train_mAP.update(mAP_value, images.size(0))
         losses.update(loss.item(), images.size(0))
         if accumulation_steps > 1:

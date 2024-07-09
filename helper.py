@@ -5,7 +5,7 @@ import torch
 
 
 class AverageMeter(object):
-    """Computes and stores the average and current value"""
+    """Computes and stores the average value"""
 
     def __init__(self):
         self.reset()
@@ -24,6 +24,8 @@ class AverageMeter(object):
 
 
 def build_logger(cfg, model_name):
+    """create/open file to store log info"""
+
     log_folder = os.path.join(cfg.OUTPUT_DIR, model_name)
     if not os.path.exists(log_folder):
         os.makedirs(log_folder)
@@ -37,10 +39,12 @@ def build_logger(cfg, model_name):
 
 
 def write_logfile(content, logfile):
+
     print(content, file=logfile, flush=True)
 
 
 def load_checkpoint(pretrained, model, optimizer, scheduler):
+
     if pretrained is not None and os.path.exists(pretrained):
         print("... loading weights from %s" % pretrained)
         checkpoint = torch.load(pretrained, map_location="cpu")
@@ -55,6 +59,8 @@ def load_checkpoint(pretrained, model, optimizer, scheduler):
 
 
 def load_model_only(pretrained, model):
+    """only model, except optimzer, scheduler, etc"""
+
     if pretrained is not None and os.path.exists(pretrained):
         print("... loading weights from %s" % pretrained)
         checkpoint = torch.load(pretrained, map_location="cpu")
@@ -83,6 +89,7 @@ def load_model_only(pretrained, model):
 
 
 def save_checkpoint(state, epoch, is_best, filepath="", model_name=""):
+
     output_dir = filepath
     filepath = os.path.join(filepath, model_name)
     if not os.path.exists(filepath):
@@ -99,6 +106,5 @@ def save_checkpoint(state, epoch, is_best, filepath="", model_name=""):
             os.path.join(filepath, "best.pth"),
         )
     shutil.copyfile(
-        os.path.join(filepath, "checkpoint.pth"),
-        os.path.join(output_dir, "last.pth")
+        os.path.join(filepath, "checkpoint.pth"), os.path.join(output_dir, "last.pth")
     )
