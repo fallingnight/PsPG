@@ -70,4 +70,3 @@ dependencies:
       - transformers==4.37.2
       - wcwidth==0.2.13
       - yacs==0.1.8
-prefix: C:\Users\Bardi\.conda\envs\pspg-original
